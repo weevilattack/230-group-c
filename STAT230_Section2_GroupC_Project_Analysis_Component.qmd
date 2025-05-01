@@ -168,34 +168,86 @@ ggpairs(
 
 # Step 3: Building Models
 
-We ran an automated variable selection approach to select the best subset of predictor variables to include in models of different sizes. Based on the best subsets output, we selected the four-predictor model with aftertaste, body, flavor, and species as predictors after including only significant variables and balancing high parsimony, high adjusted R2, and low Mallows’ Cp.
+We ran an automated variable selection approach to select the best subset of predictor variables to include in models of different sizes. Based on the best subsets output, we selected the four-predictor model with aftertaste, body, flavor, and aroma as predictors after including only significant variables and balancing high parsimony, high adjusted R2 (0.737), and low Mallows’ Cp (7.00).
 
-After analyzing the correlation matrix and VIF values, we will remove explanatory variables that are collinear with each other (with VIFs higher than 5) and prioritize explanatory variables with the highest correlation to total_cup_points.
-
-If we still have many variables to select from, we will use the best subset automated variable selection method to choose a model that balances fit (best-adjusted R\^2 and lowest Mallows’ Cp) with parsimony (simple model). We will also keep in mind to only include significant variables, but the best subset AV selection should take care of this.
-
-We will make a scatter plot with interaction allowed for each selected explanatory variable vs. total_cup_points, making sure to color the points and regression line by species, to check for linearity and interaction. If the interaction term is significant, then we will include the interaction term for the explanatory variable being observed and the species of the coffee. We will check conditions of equal variance and normality of errors using residual plots and QQ plots, respectively.
-
-Finally, with our list of explanatory variables that pass the conditions and significant interactions, we will create our final multiple linear regression.
-
-Best subsets
 
 ```{r}
 library(leaps)
 best_subset <- regsubsets(total_cup_points ~ aftertaste + aroma + body + flavor + moisture,  data = coffee_data, nbest = 1)
 with(summary(best_subset), data.frame(rsq, adjr2, cp, rss, outmat))
 ```
+After analyzing the correlation matrix and VIF values, we will remove explanatory variables that are collinear with each other (with VIFs higher than 5) and prioritize explanatory variables with the highest correlation to total_cup_points.
 
 ```{r}
-subset_model <- lm(total_cup_points ~ aftertaste + body + flavor, data = coffee_data)
+subset_model <- lm(total_cup_points ~ aftertaste + aroma +  body + flavor, data = coffee_data)
 
 library(car)
 vif(subset_model)
+```
+Though aftertaste and flavor's VIF values appear to be close to 5, they do not reach or go beyond 5, so there is no significant issue of multicollinearity in our selected variables.
 
-final_model <- lm(total_cup_points ~ flavor + aftertaste + body, data = coffee_data)
+After building the model, we will check conditions of equal variance and normality of errors using residual plots and QQ plots, respectively.
+
+```{r}
+subset_model <- lm(total_cup_points ~ aftertaste + aroma +  body + flavor, data = coffee_data)
+
+subset_mod_resid <- mplot(subset_model, which = 1)
+subset_mod_normality <- mplot(subset_model, which = 2)
+
+
+# Organize all resid plots
+grid.arrange(subset_mod_resid, subset_mod_normality, nrow = 2)
+```
+The equal variance condition appear to be met. However, the lower tail of the Q-Q plot deviates away from the straight line. We will try removing outliers and looking at the conditions again to see if it improves the conditions. To determine outliers that may be influential, we will use Cook's distance.
+
+```{r}
+cooksD <- cooks.distance(subset_model)
+
+plot(cooksD, type = "h",
+     main = "Cook's Distance",
+     ylab = "Cook's D", xlab = "Observation Index",
+     col = "lightblue", lwd = 2)
+
+
+```
+
+
+```{r}
+# Three-most unusual points in the data set
+cooksD[c(1310, 1309, 1296)]
+```
+It appears that none of the points have a Cook's distance greater than 0.5 (for moderate influence) or 1.0 (for high influence), so we should not remove any coffee bean observation. 
+
+We also take a look at added variable plots to check if each of the predictors influence our response, total_cup_points, taking into account the effect of other variables
+
+
+```{r}
+car::avPlots(subset_model) 
+```
+
+The added-variable plots show that points 1309 and 1310 are outliers, but we've already calculated Cook's distances for these points and decided not to remove them based on the cutoff. The predictor variables seem to have positive relationship with the total_cup_points, though the slopes are not very steep (but also not flat!).
+
+Lastly, to compare multiple models, we bring in the kitchen sink model to relate with the subsets model.
+
+```{r}
+kitchen <- lm(total_cup_points ~ aftertaste+aroma+flavor+body+moisture, data= coffee_data)
+anova(subset_model, kitchen)
+```
+```{r}
+msummary(kitchen)
+```
+It seems that moisture does not add enough information to be a significant predictor of total cup points (p = 0.08 > 0.05), so our subsets model is the best model we can use.
+
+Finally, with our list of explanatory variables that pass the conditions and significant interactions, we created our final multiple linear regression.
+
+```{r}
+
+final_model <- lm(total_cup_points ~ flavor + aftertaste + body + aroma, data = coffee_data)
 summary(final_model)
 
 ```
+
+
 
 ```{r}
 # ggplot(coffee_data, aes(x = flavor, y = total_cup_points, color = species)) +
