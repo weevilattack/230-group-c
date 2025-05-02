@@ -142,13 +142,39 @@ Arabica Robusta
    1310      28 </code></pre>
 </div>
 </div>
-<p>The bar chart of species indicates that there are 1310 observations of Arabica beans and only 28 observations of Robusta beans. Given that we have so few observations of Robusta included in our data set, it would not make a balanced analysis to include Robusta beans in our data set; we don’t have enough data to predict values for Robusta. As a result, we filtered our data set to include only Arabica beans and removed the <em>species</em> categorical variable.</p>
+<section id="bar-chart" class="level3">
+<h3 class="anchored" data-anchor-id="bar-chart">Bar Chart</h3>
+<p>The bar chart of species indicates that there are 1310 observations of Arabica beans and only 28 observations of Robusta beans. Given that we have so few observations of Robusta included in our data set, it would not make a balanced analysis to include Robusta beans in our data set; we don’t have enough data to predict values for Robusta. <strong>As a result, we filtered our data set to include only Arabica beans and removed the <em>species</em> categorical variable.</strong></p>
+</section>
+<section id="histograms" class="level3">
+<h3 class="anchored" data-anchor-id="histograms">Histograms</h3>
 <p>The density plot for <em>total cup points</em> (mean = 82.15, SD = 2.68), <em>aftertaste</em> (mean = 7.407, SD = 0.35), <em>aroma</em> (mean = 7.572, SD = 0.32), body (mean = 7.523, SD = 0.31), and flavor (mean = 7.526, SD = 0.34) are all normally distributed with no obvious outliers or skewness. The density for <em>moisture</em> looks bimodal with one smaller peak around 0% and one peak around 10-12%.</p>
 </section>
-<section id="step-2-bivariate-analysis" class="level1">
-<h1>Step 2: Bivariate Analysis</h1>
-<p>We will create a ‘ggpairs’ plot to compare each of the explanatory variables (aftertaste, aroma, body, flavor, moisture, species) to the predictor variable (total_cup_points) as well as to each other. This will generate scatterplots and correlation coefficients for every combination of variables. First, we will look at possible relationships between the explanatory variables and the predictor variable (total_cup_points), through scatterplots in the ggpairs plot. This is to ensure that our data meets the conditions for modeling and inference. Next, in the ggpairs plot, we will look at the correlation coefficients between each explanatory variable and the predictor variable to see which has the strongest correlation with our predictor variable.</p>
-<p>We will also use this same ggpairs plot to observe the relationship among each of the explanatory variables with each other. If there are any explanatory variables that seem to have a high correlation with other explanatory variables, there might be issues of multicollinearity. In that case, we would use the variance inflation factor (VIF) to determine which of the correlated explanatory variables to keep, and which to discard.</p>
+</section>
+<section id="bivariate-analyses" class="level1">
+<h1>Bivariate Analyses</h1>
+<section id="quantitative-vs.-categorical-variables" class="level3">
+<h3 class="anchored" data-anchor-id="quantitative-vs.-categorical-variables">Quantitative vs.&nbsp;Categorical Variables</h3>
+<p>Since we removed <em>species</em> as a variable, we did not create boxplots of <em>total_cup_points</em> vs.&nbsp;quantitative predictors, with species as a factor.</p>
+</section>
+<section id="quantitative-vs.-quantitative-variables" class="level3">
+<h3 class="anchored" data-anchor-id="quantitative-vs.-quantitative-variables">Quantitative vs.&nbsp;Quantitative Variables</h3>
+<p>To check for bivariate relationships between quantitative variables, we created a scatterplot of every combination of quantitative variables and derived their respective correlation coefficients.</p>
+<p>Linearity Condition: The scatterplots of <em>aftertaste, aroma, body,</em> and <em>flavor</em> on <em>total_cup_points</em> appear linear, so they fit the linearity condition. The aforementioned quantitative predictors have moderately positive linear relationships with <em>total_cup_points</em>, with their correlation coefficients respectively being 0.812, 0.686, 0.628, and 0.827. <em>Moisture</em> does not appear to have a linear relationship with <em>total_cup_points</em> or any other predictor variables, indicating that it does not pass the linearity condition. There are also two clusters in all <em>moisture</em> scatterplots plots, which reflected the bimodal distribution of <em>moisture</em>.</p>
+<p>Equal Variance Condition: We plotted the residuals between our quantitative predictors (respectively, <em>aftertaste, aroma, body, flavor, moisture respectively</em>) and <em>total_cup_points</em>. The relationship between all of our quantitative variables and total_cup_points looks heteroskedastic, as the spread of <em>total_cup_points</em> increases when <em>aftertaste, aroma, body,</em> and <em>flavor</em> are rated low. The relationship between moisture and total_cup_points has a butterfly shape, as the spread increases and decreases throughout different moisture ratings. None of our quantitative predictors fit the equal variance condition, so we transformed them.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="STAT230_Section2_GroupC_Project_Analysis_Component_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="1440"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Independence Condition: Each bean was rated independently regardless of other beans, so it meets the independence condition.</p>
+<p>No Outliers Condition: There are some outliers in the scatterplots between each quantitative predictor and total_cup_points, so it does not meet the no outliers condition. In general, there are a lot of outliers when the fitted value is low.</p>
+<p>Collinearity Condition: Given that aftertaste, aroma, body, and flavor have moderate correlations between each other, we would like to check the variation inflation factor (VIF) for possible concerns with multicollinearity. However, we will need to construct a model to check VIF, so we will return to this after building a model.</p>
+<p>No transformation could make <em>moisture’</em>s distribution unimodal. Also, it met the fewest of the conditions and had the weakest correlation with <em>total_cup_points</em>, so <strong>we removed moisture from the possible variables</strong>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>quant_vars <span class="ot">&lt;-</span> coffee_data <span class="sc">|&gt;</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(aftertaste, aroma, body, flavor, moisture, total_cup_points)</span>
@@ -182,19 +208,16 @@ total_cup_points        1.0000000</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="STAT230_Section2_GroupC_Project_Analysis_Component_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="STAT230_Section2_GroupC_Project_Analysis_Component_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 </section>
+</section>
 <section id="step-3-building-models" class="level1">
 <h1>Step 3: Building Models</h1>
-<p>After analyzing the correlation matrix and VIF values, we will remove explanatory variables that are collinear with each other (with VIFs higher than 5) and prioritize explanatory variables with the highest correlation to total_cup_points.</p>
-<p>If we still have many variables to select from, we will use the best subset automated variable selection method to choose a model that balances fit (best-adjusted R^2 and lowest Mallows’ Cp) with parsimony (simple model). We will also keep in mind to only include significant variables, but the best subset AV selection should take care of this.</p>
-<p>We will make a scatter plot with interaction allowed for each selected explanatory variable vs.&nbsp;total_cup_points, making sure to color the points and regression line by species, to check for linearity and interaction. If the interaction term is significant, then we will include the interaction term for the explanatory variable being observed and the species of the coffee. We will check conditions of equal variance and normality of errors using residual plots and QQ plots, respectively.</p>
-<p>Finally, with our list of explanatory variables that pass the conditions and significant interactions, we will create our final multiple linear regression.</p>
-<p>Best subsets</p>
+<p>We ran an automated variable selection approach to select the best subset of predictor variables to include in models of different sizes. Based on the best subsets output, we selected the four-predictor model with aftertaste, body, flavor, and aroma as predictors after including only significant variables and balancing high parsimony, high adjusted R2 (0.737), and low Mallows’ Cp (7.00).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(leaps)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -217,8 +240,9 @@ total_cup_points        1.0000000</code></pre>
 5  ( 1 )        *</code></pre>
 </div>
 </div>
+<p>After analyzing the correlation matrix and VIF values, we will remove explanatory variables that are collinear with each other (with VIFs higher than 5) and prioritize explanatory variables with the highest correlation to total_cup_points.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>subset_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(total_cup_points <span class="sc">~</span> aftertaste <span class="sc">+</span> body <span class="sc">+</span> flavor, <span class="at">data =</span> coffee_data)</span>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>subset_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(total_cup_points <span class="sc">~</span> aftertaste <span class="sc">+</span> aroma <span class="sc">+</span>  body <span class="sc">+</span> flavor, <span class="at">data =</span> coffee_data)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(car)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -227,6 +251,11 @@ total_cup_points        1.0000000</code></pre>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'car'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:pracma':
+
+    logit</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>The following object is masked from 'package:purrr':
@@ -243,44 +272,151 @@ Attaching package: 'car'</code></pre>
 
     recode</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vif</span>(subset_model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vif</span>(subset_model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>aftertaste       body     flavor 
-  4.057225   1.901489   4.018930 </code></pre>
+<pre><code>aftertaste      aroma       body     flavor 
+  4.138218   2.294633   1.916686   4.652150 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>final_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(total_cup_points <span class="sc">~</span> flavor <span class="sc">+</span> aftertaste <span class="sc">+</span> body, <span class="at">data =</span> coffee_data)</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(final_model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Call:
-lm(formula = total_cup_points ~ flavor + aftertaste + body, data = coffee_data)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--17.1086  -0.1617   0.2321   0.6062   4.8594 
-
-Coefficients:
-            Estimate Std. Error t value Pr(&gt;|t|)    
-(Intercept)  27.5548     1.0059  27.394  &lt; 2e-16 ***
-flavor        3.5280     0.2221  15.884  &lt; 2e-16 ***
-aftertaste    2.7730     0.2181  12.716  &lt; 2e-16 ***
-body          1.0036     0.1782   5.632 2.18e-08 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 1.37 on 1306 degrees of freedom
-Multiple R-squared:  0.7403,    Adjusted R-squared:  0.7397 
-F-statistic:  1241 on 3 and 1306 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<p>Though aftertaste and flavor’s VIF values appear to be close to 5, they do not reach or go beyond 5, so there is no significant issue of multicollinearity in our selected variables.</p>
+<p>After building the model, we will check conditions of equal variance and normality of errors using residual plots and QQ plots, respectively.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>subset_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(total_cup_points <span class="sc">~</span> aftertaste <span class="sc">+</span> aroma <span class="sc">+</span>  body <span class="sc">+</span> flavor, <span class="at">data =</span> coffee_data)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>subset_mod_resid <span class="ot">&lt;-</span> <span class="fu">mplot</span>(subset_model, <span class="at">which =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="STAT230_Section2_GroupC_Project_Analysis_Component_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>subset_mod_normality <span class="ot">&lt;-</span> <span class="fu">mplot</span>(subset_model, <span class="at">which =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="STAT230_Section2_GroupC_Project_Analysis_Component_files/figure-html/unnamed-chunk-12-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Organize all resid plots</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.arrange</span>(subset_mod_resid, subset_mod_normality, <span class="at">nrow =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="STAT230_Section2_GroupC_Project_Analysis_Component_files/figure-html/unnamed-chunk-12-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The equal variance condition appear to be met. However, the lower tail of the Q-Q plot deviates away from the straight line. We will try removing outliers and looking at the conditions again to see if it improves the conditions. To determine outliers that may be influential, we will use Cook’s distance.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>cooksD <span class="ot">&lt;-</span> <span class="fu">cooks.distance</span>(subset_model)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cooksD, <span class="at">type =</span> <span class="st">"h"</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Cook's Distance"</span>,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">"Cook's D"</span>, <span class="at">xlab =</span> <span class="st">"Observation Index"</span>,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"lightblue"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="STAT230_Section2_GroupC_Project_Analysis_Component_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ggplot(coffee_data, aes(x = flavor, y = total_cup_points, color = species)) +</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_point(alpha = 0.7) +</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_smooth(method = "lm", se = FALSE) +</span></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   labs(title = "Flavor vs Total Cup Points by Species",</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="co">#        x = "Flavor",</span></span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co">#        y = "Total Cup Points") +</span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   theme_minimal()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Three-most unusual points in the data set</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>cooksD[<span class="fu">c</span>(<span class="dv">1310</span>, <span class="dv">1309</span>, <span class="dv">1296</span>)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     1310      1309      1296 
+0.3799399 0.2480239 0.1296148 </code></pre>
+</div>
+</div>
+<p>It appears that none of the points have a Cook’s distance greater than 0.5 (for moderate influence) or 1.0 (for high influence), so we should not remove any coffee bean observation.</p>
+<p>We also take a look at added variable plots to check if each of the predictors influence our response, total_cup_points, taking into account the effect of other variables</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>car<span class="sc">::</span><span class="fu">avPlots</span>(subset_model) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="STAT230_Section2_GroupC_Project_Analysis_Component_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The added-variable plots show that points 1309 and 1310 are outliers, but we’ve already calculated Cook’s distances for these points and decided not to remove them based on the cutoff. The predictor variables seem to have positive relationship with the total_cup_points, though the slopes are not very steep (but also not flat!).</p>
+<p>Lastly, to compare multiple models, we bring in the kitchen sink model to relate with the subsets model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>kitchen <span class="ot">&lt;-</span> <span class="fu">lm</span>(total_cup_points <span class="sc">~</span> aftertaste<span class="sc">+</span>aroma<span class="sc">+</span>flavor<span class="sc">+</span>body<span class="sc">+</span>moisture, <span class="at">data=</span> coffee_data)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(subset_model, kitchen)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Model 1: total_cup_points ~ aftertaste + aroma + body + flavor
+Model 2: total_cup_points ~ aftertaste + aroma + flavor + body + moisture
+  Res.Df    RSS Df Sum of Sq      F Pr(&gt;F)
+1   1305 2400.8                           
+2   1304 2398.0  1    2.8141 1.5303 0.2163</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">msummary</span>(kitchen)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  25.2835     1.0963  23.063  &lt; 2e-16 ***
+aftertaste    2.6341     0.2188  12.041  &lt; 2e-16 ***
+aroma         0.9611     0.1798   5.346 1.06e-07 ***
+flavor        3.0500     0.2367  12.885  &lt; 2e-16 ***
+body          0.9415     0.1779   5.292 1.42e-07 ***
+moisture      0.9913     0.8013   1.237    0.216    
+
+Residual standard error: 1.356 on 1304 degrees of freedom
+Multiple R-squared:  0.7461,    Adjusted R-squared:  0.7451 
+F-statistic: 766.3 on 5 and 1304 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>It seems that moisture does not add enough information to be a significant predictor of total cup points (p = 0.08 &gt; 0.05), so our subsets model is the best model we can use.</p>
+<p>Finally, with our list of explanatory variables that pass the conditions and significant interactions, we created our final multiple linear regression.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>final_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(total_cup_points <span class="sc">~</span> flavor <span class="sc">+</span> aftertaste <span class="sc">+</span> body <span class="sc">+</span> aroma, <span class="at">data =</span> coffee_data)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(final_model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = total_cup_points ~ flavor + aftertaste + body + 
+    aroma, data = coffee_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-17.5741  -0.1226   0.2259   0.5752   4.3546 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  25.6370     1.0586  24.217  &lt; 2e-16 ***
+flavor        3.0634     0.2365  12.953  &lt; 2e-16 ***
+aftertaste    2.6106     0.2180  11.977  &lt; 2e-16 ***
+body          0.9196     0.1771   5.194 2.39e-07 ***
+aroma         0.9574     0.1798   5.325 1.19e-07 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 1.356 on 1305 degrees of freedom
+Multiple R-squared:  0.7458,    Adjusted R-squared:  0.745 
+F-statistic: 957.1 on 4 and 1305 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ggplot(coffee_data, aes(x = flavor, y = total_cup_points, color = species)) +</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_point(alpha = 0.7) +</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_smooth(method = "lm", se = FALSE) +</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   labs(title = "Flavor vs Total Cup Points by Species",</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co">#        x = "Flavor",</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co">#        y = "Total Cup Points") +</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   theme_minimal()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 

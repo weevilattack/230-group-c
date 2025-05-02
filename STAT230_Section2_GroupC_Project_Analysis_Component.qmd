@@ -14,6 +14,7 @@ library(tidyverse)
 library(GGally)
 library(broom)
 library(grid)
+library(pracma)
 
 coffee_data <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/06bca976827f922af8c1f62db67e6c1a7f0dcd4b/data/2020/2020-07-07/coffee_ratings.csv")
 coffee_data <- coffee_data |>
@@ -112,11 +113,13 @@ Since we removed *species* as a variable, we did not create boxplots of *total_c
 
 ### Quantitative vs. Quantitative Variables
 
-To check for bivariate relationships between quantitative variables, we created a scatterplot of every combination of quantitative variables and derived their respective correlation coefficients. 
+To check for bivariate relationships between quantitative variables, we created a scatterplot of every combination of quantitative variables and derived their respective correlation coefficients.
 
 Linearity Condition: The scatterplots of *aftertaste, aroma, body,* and *flavor* on *total_cup_points* appear linear, so they fit the linearity condition. The aforementioned quantitative predictors have moderately positive linear relationships with *total_cup_points*, with their correlation coefficients respectively being 0.812, 0.686, 0.628, and 0.827. *Moisture* does not appear to have a linear relationship with *total_cup_points* or any other predictor variables, indicating that it does not pass the linearity condition. There are also two clusters in all *moisture* scatterplots plots, which reflected the bimodal distribution of *moisture*.
 
-```{r, echo = FALSE}
+Equal Variance Condition: We plotted the residuals between our quantitative predictors (respectively, *aftertaste, aroma, body, flavor, moisture respectively*) and *total_cup_points*. The relationship between all of our quantitative variables and total_cup_points looks heteroskedastic, as the spread of *total_cup_points* increases when *aftertaste, aroma, body,* and *flavor* are rated low. The relationship between moisture and total_cup_points has a butterfly shape, as the spread increases and decreases throughout different moisture ratings. None of our quantitative predictors fit the equal variance condition, so we transformed them.
+
+```{r, echo = FALSE, include = FALSE}
 # making tests mod so we can see equal variance of each quant pred vs total cup pts
 aftertastemod <- lm(total_cup_points ~ aftertaste, data = coffee_data)
 aromamod <- lm(total_cup_points ~ aroma, data = coffee_data)
@@ -131,19 +134,46 @@ aromaresids <- mplot(aromamod, which = 1)
 bodyresids <- mplot(bodymod, which = 1)
 flavorresids <- mplot(flavormod, which = 1)
 moistureresids <- mplot(moisturemod, which = 1)
-note <- textGrob("",
-                 gp = gpar(fontsize = 10),
-                 just = "left")
 
-# Organize all resid plots
-grid.arrange(aftertasteresids, aromaresids, bodyresids, flavorresids, moistureresids, nrow = 2)
+
 ```
 
-Equal Variance Condition: We plotted the residuals between our quantitative predictors (respectively, *aftertaste, aroma, body, flavor, moisture respectively*) and *total_cup_points*. The relationship between all of our quantitative variables and total_cup_points looks heteroskedastic, as the spread of *total_cup_points* increases when *aftertaste, aroma, body,* and *flavor* are rated low. The relationship between moisture and total_cup_points has a butterfly shape, as the spread increases and decreases throughout different moisture ratings. None of our quantitative predictors fit the equal variance condition, indicating that we might need to transform the predictors.
+```{r, echo = FALSE, include = FALSE}
+# Transform variables
+coffee_data <- coffee_data |>
+  mutate(
+    aftertaste_t = log10(aftertaste),
+    aroma_t      = log10(aroma),
+    body_t       = log10(body),
+    flavor_t     = log10(flavor),
+    moisture_t   = log10(moisture)
+  )
 
-Independence Condition: Each bean was rated independently regardless of other beans, so it meets the independence condition. 
+# making tests mod so we can see equal variance of each quant pred vs total cup pts
+aftertastemod_t <- lm(total_cup_points ~ aftertaste_t, data = coffee_data)
+aromamod_t <- lm(total_cup_points ~ aroma_t, data = coffee_data)
+bodymod_t <- lm(total_cup_points ~ body_t, data = coffee_data)
+flavormod_t <- lm(total_cup_points ~ flavor_t, data = coffee_data)
 
-No Outliers Condition: There are some outliers in the scatterplots between each quantitative predictor and total_cup_points, so it does not meet the no outliers condition. In general, there are a lot of outliers when the fitted value is low.
+
+# Make a resids plot for each individual quant predictor vs cup points
+# Residual plots for aftertaste, aroma, body,flavor, moisture respectively
+aftertasteresids_t <- mplot(aftertastemod_t, which = 1)
+aromaresids_t <- mplot(aromamod_t, which = 1)
+bodyresids_t <- mplot(bodymod_t, which = 1)
+flavorresids_t <- mplot(flavormod_t, which = 1)
+
+```
+
+```{r, echo = FALSE, fig.height = 6, fig.width = 15}
+# Organize all resid plots
+# before transformation
+grid.arrange(aftertasteresids, aromaresids, bodyresids, flavorresids, moistureresids, aftertasteresids_t, aromaresids_t, bodyresids_t, flavorresids_t, nrow = 2)
+```
+
+Independence Condition: Each bean was rated independently regardless of other beans, so it meets the independence condition.
+
+No Outliers Condition: There are some outliers in the scatterplots between each quantitative predictor and total_cup_points, so it does not meet the no outliers condition. In general, there are a lot of outliers when the fitted value is low.
 
 Collinearity Condition: Given that aftertaste, aroma, body, and flavor have moderate correlations between each other, we would like to check the variation inflation factor (VIF) for possible concerns with multicollinearity. However, we will need to construct a model to check VIF, so we will return to this after building a model.
 
@@ -170,12 +200,12 @@ ggpairs(
 
 We ran an automated variable selection approach to select the best subset of predictor variables to include in models of different sizes. Based on the best subsets output, we selected the four-predictor model with aftertaste, body, flavor, and aroma as predictors after including only significant variables and balancing high parsimony, high adjusted R2 (0.737), and low Mallows’ Cp (7.00).
 
-
 ```{r}
 library(leaps)
 best_subset <- regsubsets(total_cup_points ~ aftertaste + aroma + body + flavor + moisture,  data = coffee_data, nbest = 1)
 with(summary(best_subset), data.frame(rsq, adjr2, cp, rss, outmat))
 ```
+
 After analyzing the correlation matrix and VIF values, we will remove explanatory variables that are collinear with each other (with VIFs higher than 5) and prioritize explanatory variables with the highest correlation to total_cup_points.
 
 ```{r}
@@ -184,6 +214,7 @@ subset_model <- lm(total_cup_points ~ aftertaste + aroma +  body + flavor, data 
 library(car)
 vif(subset_model)
 ```
+
 Though aftertaste and flavor's VIF values appear to be close to 5, they do not reach or go beyond 5, so there is no significant issue of multicollinearity in our selected variables.
 
 After building the model, we will check conditions of equal variance and normality of errors using residual plots and QQ plots, respectively.
@@ -198,6 +229,7 @@ subset_mod_normality <- mplot(subset_model, which = 2)
 # Organize all resid plots
 grid.arrange(subset_mod_resid, subset_mod_normality, nrow = 2)
 ```
+
 The equal variance condition appear to be met. However, the lower tail of the Q-Q plot deviates away from the straight line. We will try removing outliers and looking at the conditions again to see if it improves the conditions. To determine outliers that may be influential, we will use Cook's distance.
 
 ```{r}
@@ -211,15 +243,14 @@ plot(cooksD, type = "h",
 
 ```
 
-
 ```{r}
 # Three-most unusual points in the data set
 cooksD[c(1310, 1309, 1296)]
 ```
-It appears that none of the points have a Cook's distance greater than 0.5 (for moderate influence) or 1.0 (for high influence), so we should not remove any coffee bean observation. 
+
+It appears that none of the points have a Cook's distance greater than 0.5 (for moderate influence) or 1.0 (for high influence), so we should not remove any coffee bean observation.
 
 We also take a look at added variable plots to check if each of the predictors influence our response, total_cup_points, taking into account the effect of other variables
-
 
 ```{r}
 car::avPlots(subset_model) 
@@ -233,10 +264,12 @@ Lastly, to compare multiple models, we bring in the kitchen sink model to relate
 kitchen <- lm(total_cup_points ~ aftertaste+aroma+flavor+body+moisture, data= coffee_data)
 anova(subset_model, kitchen)
 ```
+
 ```{r}
 msummary(kitchen)
 ```
-It seems that moisture does not add enough information to be a significant predictor of total cup points (p = 0.08 > 0.05), so our subsets model is the best model we can use.
+
+It seems that moisture does not add enough information to be a significant predictor of total cup points (p = 0.08 \> 0.05), so our subsets model is the best model we can use.
 
 Finally, with our list of explanatory variables that pass the conditions and significant interactions, we created our final multiple linear regression.
 
@@ -246,8 +279,6 @@ final_model <- lm(total_cup_points ~ flavor + aftertaste + body + aroma, data = 
 summary(final_model)
 
 ```
-
-
 
 ```{r}
 # ggplot(coffee_data, aes(x = flavor, y = total_cup_points, color = species)) +
