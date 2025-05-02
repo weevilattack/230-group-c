@@ -202,7 +202,7 @@ We ran an automated variable selection approach to select the best subset of pre
 
 ```{r}
 library(leaps)
-best_subset <- regsubsets(total_cup_points ~ aftertaste + aroma + body + flavor + moisture,  data = coffee_data, nbest = 1)
+best_subset <- regsubsets(total_cup_points ~ aftertaste + aroma + body + flavor,  data = coffee_data, nbest = 1)
 with(summary(best_subset), data.frame(rsq, adjr2, cp, rss, outmat))
 ```
 
@@ -224,6 +224,9 @@ subset_model <- lm(total_cup_points ~ aftertaste + aroma +  body + flavor, data 
 
 subset_mod_resid <- mplot(subset_model, which = 1)
 subset_mod_normality <- mplot(subset_model, which = 2)
+
+# original model with everything
+everything_model <- lm(total_cup_points ~ aftertaste + aroma +  body + flavor + moisture, data = coffee_data)
 
 
 # Organize all resid plots
@@ -253,7 +256,7 @@ It appears that none of the points have a Cook's distance greater than 0.5 (for 
 We also take a look at added variable plots to check if each of the predictors influence our response, total_cup_points, taking into account the effect of other variables
 
 ```{r}
-car::avPlots(subset_model) 
+car::avPlots(everything_model) 
 ```
 
 The added-variable plots show that points 1309 and 1310 are outliers, but we've already calculated Cook's distances for these points and decided not to remove them based on the cutoff. The predictor variables seem to have positive relationship with the total_cup_points, though the slopes are not very steep (but also not flat!).
@@ -275,7 +278,7 @@ Finally, with our list of explanatory variables that pass the conditions and sig
 
 ```{r}
 
-final_model <- lm(total_cup_points ~ flavor + aftertaste + body + aroma, data = coffee_data)
+final_model <- lm(total_cup_points ~ aroma + aftertaste + flavor, data = coffee_data)
 summary(final_model)
 
 ```
